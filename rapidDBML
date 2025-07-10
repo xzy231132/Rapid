@@ -9,6 +9,7 @@ Table user {
   Password varchar(20)
 }
 
+// We can still put the county name for Florida, we will also be using an API to get that data as well
 Table county {
   Population integer [primary key]
   Name varchar(15)
