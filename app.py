@@ -6,7 +6,7 @@ import os # Remove this line if needed as well, this is just for the passwords
 
 app = Flask(__name__)
 
-load_dotenv()
+load_dotenv() # Remove this line if needed
 
 psql_password = os.getenv("PSQL_PASSWORD") # Remove this line if need
 
