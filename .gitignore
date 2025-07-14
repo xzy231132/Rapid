@@ -4,4 +4,4 @@ env/
 ENV/
 .venv/
 .virtualenv/
-.env/
+.env
