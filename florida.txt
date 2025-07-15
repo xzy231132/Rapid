@@ -1,0 +1,204 @@
+FIPS
+State
+and
+CountyGeographic
+Codes area name RAE Report Links
+     12Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12&geoType=state&view=report&reportType=detailed
+       Alachua
+       County,
+12001 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12001&geoType=county&view=report&reportType=detailed
+       Baker
+       County,
+12003 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12003&geoType=county&view=report&reportType=detailed
+       Bay County,
+12005 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12005&geoType=county&view=report&reportType=detailed
+       Bradford
+       County,
+12007 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12007&geoType=county&view=report&reportType=detailed
+       Brevard
+       County,
+12009 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12009&geoType=county&view=report&reportType=detailed
+       Broward
+       County,
+12011 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12011&geoType=county&view=report&reportType=detailed
+       Calhoun
+       County,
+12013 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12013&geoType=county&view=report&reportType=detailed
+       Charlotte
+       County,
+12015 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12015&geoType=county&view=report&reportType=detailed
+       Citrus
+       County,
+12017 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12017&geoType=county&view=report&reportType=detailed
+       Clay
+       County,
+12019 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12019&geoType=county&view=report&reportType=detailed
+       Collier
+       County,
+12021 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12021&geoType=county&view=report&reportType=detailed
+       Columbia
+       County,
+12023 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12023&geoType=county&view=report&reportType=detailed
+       DeSoto
+       County,
+12027 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12027&geoType=county&view=report&reportType=detailed
+       Dixie
+       County,
+12029 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12029&geoType=county&view=report&reportType=detailed
+       Duval
+       County,
+12031 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12031&geoType=county&view=report&reportType=detailed
+       Escambia
+       County,
+12033 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12033&geoType=county&view=report&reportType=detailed
+       Flagler
+       County,
+12035 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12035&geoType=county&view=report&reportType=detailed
+       Franklin
+       County,
+12037 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12037&geoType=county&view=report&reportType=detailed
+       Gadsden
+       County,
+12039 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12039&geoType=county&view=report&reportType=detailed
+       Gilchrist
+       County,
+12041 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12041&geoType=county&view=report&reportType=detailed
+       Glades
+       County,
+12043 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12043&geoType=county&view=report&reportType=detailed
+       Gulf County,
+12045 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12045&geoType=county&view=report&reportType=detailed
+       Hamilton
+       County,
+12047 Florida       https://cbb.census.gov/rae/#industry0=00&geoId=12047&geoType=county&view=report&reportType=detailed
+        Hardee
+        County,
+12049   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12049&geoType=county&view=report&reportType=detailed
+        Hendry
+        County,
+12051   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12051&geoType=county&view=report&reportType=detailed
+        Hernando
+        County,
+12053   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12053&geoType=county&view=report&reportType=detailed
+        Highlands
+        County,
+12055   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12055&geoType=county&view=report&reportType=detailed
+        Hillsborough
+        County,
+12057   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12057&geoType=county&view=report&reportType=detailed
+        Holmes
+        County,
+12059   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12059&geoType=county&view=report&reportType=detailed
+        Indian River
+        County,
+12061   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12061&geoType=county&view=report&reportType=detailed
+        Jackson
+        County,
+12063   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12063&geoType=county&view=report&reportType=detailed
+        Jefferson
+        County,
+12065   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12065&geoType=county&view=report&reportType=detailed
+        Lafayette
+        County,
+12067   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12067&geoType=county&view=report&reportType=detailed
+        Lake
+        County,
+12069   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12069&geoType=county&view=report&reportType=detailed
+        Lee County,
+12071   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12071&geoType=county&view=report&reportType=detailed
+        Leon
+        County,
+12073   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12073&geoType=county&view=report&reportType=detailed
+        Levy
+        County,
+12075   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12075&geoType=county&view=report&reportType=detailed
+        Liberty
+        County,
+12077   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12077&geoType=county&view=report&reportType=detailed
+        Madison
+        County,
+12079   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12079&geoType=county&view=report&reportType=detailed
+        Manatee
+        County,
+12081   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12081&geoType=county&view=report&reportType=detailed
+        Marion
+        County,
+12083   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12083&geoType=county&view=report&reportType=detailed
+        Martin
+        County,
+12085   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12085&geoType=county&view=report&reportType=detailed
+        Miami-Dade
+        County,
+12086   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12086&geoType=county&view=report&reportType=detailed
+        Monroe
+        County,
+12087   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12087&geoType=county&view=report&reportType=detailed
+        Nassau
+        County,
+12089   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12089&geoType=county&view=report&reportType=detailed
+        Okaloosa
+        County,
+12091   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12091&geoType=county&view=report&reportType=detailed
+        Okeechobee
+        County,
+12093   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12093&geoType=county&view=report&reportType=detailed
+        Orange
+        County,
+12095   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12095&geoType=county&view=report&reportType=detailed
+        Osceola
+        County,
+12097   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12097&geoType=county&view=report&reportType=detailed
+        Palm Beach
+        County,
+12099   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12099&geoType=county&view=report&reportType=detailed
+        Pasco
+        County,
+12101   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12101&geoType=county&view=report&reportType=detailed
+        Pinellas
+        County,
+12103   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12103&geoType=county&view=report&reportType=detailed
+        Polk County,
+12105   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12105&geoType=county&view=report&reportType=detailed
+        Putnam
+        County,
+12107   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12107&geoType=county&view=report&reportType=detailed
+        St. Johns
+        County,
+12109   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12109&geoType=county&view=report&reportType=detailed
+        St. Lucie
+        County,
+12111   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12111&geoType=county&view=report&reportType=detailed
+        Santa Rosa
+        County,
+12113   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12113&geoType=county&view=report&reportType=detailed
+        Sarasota
+        County,
+12115   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12115&geoType=county&view=report&reportType=detailed
+        Seminole
+        County,
+12117   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12117&geoType=county&view=report&reportType=detailed
+        Sumter
+        County,
+12119   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12119&geoType=county&view=report&reportType=detailed
+        Suwannee
+        County,
+12121   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12121&geoType=county&view=report&reportType=detailed
+        Taylor
+        County,
+12123   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12123&geoType=county&view=report&reportType=detailed
+        Union
+        County,
+12125   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12125&geoType=county&view=report&reportType=detailed
+        Volusia
+        County,
+12127   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12127&geoType=county&view=report&reportType=detailed
+        Wakulla
+        County,
+12129   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12129&geoType=county&view=report&reportType=detailed
+        Walton
+        County,
+12131   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12131&geoType=county&view=report&reportType=detailed
+        Washington
+        County,
+12133   Florida      https://cbb.census.gov/rae/#industry0=00&geoId=12133&geoType=county&view=report&reportType=detailed
+
