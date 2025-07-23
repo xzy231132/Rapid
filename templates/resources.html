@@ -12,7 +12,7 @@
     <p>Request Resources</p>
   </header>
   <main>
-    <a href="index.html" class="back-btn">&larr; Back to Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="back-btn">&larr; Back to Dashboard</a>
     <section>
       <h2>Resource Request Form</h2>
       <form id="resource-form" action="{{ url_for('submit_resources') }}" method="POST">

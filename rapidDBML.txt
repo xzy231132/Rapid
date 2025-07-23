@@ -1,12 +1,18 @@
 // dbml file that covers our db schema
 // syntax reference here:
 // https://dbml.dbdiagram.io/docs/
-Table user {
-  UserID serial [primary key] // Gorgeous, this will be important identify each user in system without, username or password
-  Name varchar(30) // Encrypt this
-  Role varchar(15)
-  Username varchar(15) // Encrypt this
-  Password varchar(20) // Encrypt this
+
+// added an email column here, compaitble with my acc
+// creation form. also put unique contraints!
+// when an account is created, it will default to users
+// users are promoted to admin manually
+Table users {
+  userid serial [primary key]
+  name varchar(30)
+  role varchar(15) [default: 'user']
+  username varchar(15) [unique, not null]
+  email varchar(255) [unique, not null] 
+  password varchar(512) [not null] // using 512 because Werkzeug's generate_password_hash can exceed 128
 }
 
 // Keep this schema and manually put in each of the county's information just in case the API does not work

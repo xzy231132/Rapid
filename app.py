@@ -1,17 +1,19 @@
-from flask import Flask, render_template, request, url_for
+from flask import Flask, render_template, request, url_for, session, redirect
 import psycopg2
 from dotenv import load_dotenv # Remove this line if needed, this is for practice hide database passwords
 import os # Remove this line if needed as well, this is just for the passwords
 from scrapers import get_gas_prices
+from functools import wraps
 
 app = Flask(__name__)
 
 load_dotenv() # Remove this line if needed
 
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 psql_password = os.getenv("PSQL_PASSWORD") # Remove this line if need
 
 conn = psycopg2.connect(database="rapid_db", user="postgres",
-password=psql_password, host="localhost")  # Replace psql_password with the password for your psql user
+password=psql_password, host="localhost", port="5432")  # Replace psql_password with the password for your psql user
 
 cur = conn.cursor()
 
@@ -21,23 +23,31 @@ cur.execute(
         occurrence VARCHAR(10), description TEXT);'''
 )
 
+cur.execute(
+    '''CREATE TABLE IF NOT EXISTS users(
+        username VARCHAR(50) PRIMARY KEY,
+        email VARCHAR(100),
+        password VARCHAR(300),
+        role VARCHAR(20) DEFAULT 'user');'''
+)
+
 conn.commit()
 cur.close()
 conn.close()
 
-@app.route('/')
-def login():
-    return render_template('login.html')
+# added decorator for updating routes w/ admin access 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('index'))
+        if session.get('role') != 'admin':
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
 
-    
-
-@app.route('/admin')
-def admin():
-    return render_template('admin.html')
-
-
-@app.route('/index', methods=['GET', 'POST'])
-def index():
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
 
     county = None
     address = None
@@ -64,7 +74,7 @@ def index():
     conn.commit()
     cur.close()
     conn.close()
-    return render_template('index.html')
+    return render_template('dashboard.html', username=session.get('username'))
 
 @app.route('/resources')
 def resources():
@@ -96,6 +106,114 @@ def submit_resources():
             man_hour_cost += int(num) * hourly_rate
     message = f"Your estimated request costs ${flat_cost:.2f} flat, ${man_hour_cost:.2f} per first responder man-hour. Additionally, helicopters cost $600 per hour of flight. Custom resources are not included in this estimate."
     return render_template('summary.html', message=message)
+
+
+@app.route('/submitted_reports')
+def submitted_reports():
+    return render_template('submitted_reports.html')
+
+
+@app.route('/demographics')
+def demographics():
+    return render_template('demographics.html')
+
+
+@app.route('/admin/city_reports')
+@admin_required
+def city_reports():
+    return render_template('admin/city_reports.html')
+
+
+@app.route('/admin/county_reports')
+@admin_required
+def county_reports():
+    return render_template('admin/county_reports.html')
+
+
+@app.route("/admin/anticipated_costs")
+@admin_required
+def anticipated_costs():
+    return render_template("admin/anticipated_costs.html")
+
+
+@app.route("/admin/mock-approval")
+@admin_required
+def mock_approval():
+    return render_template("admin/mock_approval.html")
+
+from werkzeug.security import generate_password_hash
+
+@app.route('/create_account', methods=['GET', 'POST'])
+def create_account():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+
+        hashed_password = generate_password_hash(password)
+
+        conn = psycopg2.connect(database="rapid_db", user="postgres",
+            password=psql_password, host="localhost", port="5432")
+        cur = conn.cursor()
+
+        cur.execute("SELECT username FROM users WHERE username = %s", (username,))
+        existing_user = cur.fetchone()
+
+        if existing_user:
+            cur.close()
+            conn.close()
+            error = "Username already exists. Please choose another one."
+            return render_template('create_account.html', error=error)
+        
+        # insert new user here if username is unique
+        cur.execute(
+            '''INSERT INTO users (username, email, password)
+            VALUES (%s, %s, %s);''',
+            (username, email, hashed_password)
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return redirect(url_for('index')) 
+    return render_template('create_account.html')
+
+from werkzeug.security import check_password_hash
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        conn = psycopg2.connect(database="rapid_db", user="postgres",
+            password=psql_password, host="localhost", port="5432")
+        cur = conn.cursor()
+        cur.execute("SELECT password, role FROM users WHERE username = %s", (username,))
+        result = cur.fetchone()
+        print("Fetched from DB:", result)#debug
+        print("Password entered:", password)#debug
+        if result: #debug
+            print("Hash from DB:", result[0])
+            print("Check passed:", check_password_hash(result[0], password))
+        cur.close()
+        conn.close()
+
+        if result and check_password_hash(result[0], password):
+            session['username'] = username
+            session['role'] = result[1]
+            return redirect(url_for('dashboard'))
+        else:
+            error = "Invalid username or password"
+
+    return render_template('index.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
    app.run(debug = True)
