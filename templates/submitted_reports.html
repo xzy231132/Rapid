@@ -14,9 +14,23 @@
   <main>
     <a href="{{ url_for('dashboard') }}" class="back-btn">&larr; Back to Dashboard</a>
     <section>
-      <h2>Submitted Reports</h2>
-      <p>This page will display all submitted incident reports.</p>
-      <!-- GOING TO ADD TABLE HERE-->
+      <h2>Submitted Incident Reports</h2>
+
+        {% if incidents %}
+    {% for inc in incidents %}
+      <div class="incident-card">
+        <h3>{{ inc[2]|capitalize }} in {{ inc[0] }}</h3>
+        <p><strong>Address:</strong> {{ inc[1] }}</p>
+        <p><strong>Description:</strong> {{ inc[3] }}</p>
+        {% if inc|length > 4 %}
+          <p><strong>Date:</strong> {{ inc[4].strftime('%Y-%m-%d %H:%M') }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No submitted reports yet.</p>
+      {% endif %}
+
     </section>
   </main>
   <footer>

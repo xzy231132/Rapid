@@ -64,8 +64,18 @@
     <section class="dashboard-section">
       <h2>Incident Dashboard</h2>
       <div id="incidents-list">
-        <!--I am going to dynamically load incidents here. Will be working on it. -->
-        <p>No incidents reported yet.</p>
+          {% if incidents %}
+            {% for inc in incidents %}
+              <div class="incident-card">
+                <h3>{{ inc[2] | capitalize }} in {{ inc[0] }}</h3>
+                <p><strong>Address:</strong> {{ inc[1] }}</p>
+                <p><strong>Description:</strong> {{ inc[3] }}</p>
+                <p><strong>Date:</strong> {{ inc[4].strftime('%Y-%m-%d %H:%M') }}</p>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p>No incidents reported yet.</p>
+          {% endif %}
       </div>
     </section>
   </main>
@@ -74,9 +84,7 @@
   </footer>
   <script>
     // FRONT END FORM SUBMISSION DASHBOARD
-    document.getElementById('incident-form').onsubmit = function(e) {
-      e.preventDefault();
-      const form = e.target;
+    // Deleted previous JS code in here bc I'm using Flask
       const incident = {
         county: form.county.value,
         address: form.address.value,

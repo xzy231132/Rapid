@@ -17,12 +17,31 @@ password=psql_password, host="localhost", port="5432")  # Replace psql_password 
 
 cur = conn.cursor()
 
+# create incidents table if it doesn't exist
+# this is storing all incident report data submitted by users
 cur.execute(
     '''CREATE TABLE IF NOT EXISTS incidents( \
         county VARCHAR(30), address VARCHAR(120),\
         occurrence VARCHAR(10), description TEXT);'''
 )
 
+# add date column if it doesn't already exist in incidents
+cur.execute("""
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name='incidents' AND column_name='date'
+        ) THEN
+            ALTER TABLE incidents ADD COLUMN date TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+        END IF;
+    END
+    $$;
+""")
+
+# create users table if it doesnt already exist
+# for storing account credentials and role info
 cur.execute(
     '''CREATE TABLE IF NOT EXISTS users(
         username VARCHAR(50) PRIMARY KEY,
@@ -48,33 +67,35 @@ def admin_required(f):
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
-
-    county = None
-    address = None
-    occurrence = None
-    description = None
-
     if request.method == 'POST':
         county = request.form.get('county')
         address = request.form['address']
         occurrence = request.form['occurrence']
         description = request.form['description']
 
+        conn = psycopg2.connect(database="rapid_db", user="postgres",
+                                password=psql_password, host="localhost")
+        cur = conn.cursor()
+
+        cur.execute(
+    '''INSERT INTO incidents (county, address, occurrence, description)
+       VALUES (%s, %s, %s, %s);''',
+    (county, address, occurrence, description)
+    )   
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
     conn = psycopg2.connect(database="rapid_db", user="postgres",
-    password=psql_password, host="localhost")  # Replace psql_password with the password for your psql user
-
+                            password=psql_password, host="localhost")
     cur = conn.cursor()
-
-    cur.execute(
-        '''INSERT INTO incidents (county, address, occurrence, description)
-           VALUES (%s, %s, %s, %s);''',
-        (county, address, occurrence, description)
-    )
-
-    conn.commit()
+    cur.execute("SELECT * FROM incidents ORDER BY date DESC;")
+    incidents = cur.fetchall()
     cur.close()
     conn.close()
-    return render_template('dashboard.html', username=session.get('username'))
+
+    return render_template('dashboard.html', username=session.get('username'), incidents=incidents)
 
 @app.route('/resources')
 def resources():
@@ -110,7 +131,15 @@ def submit_resources():
 
 @app.route('/submitted_reports')
 def submitted_reports():
-    return render_template('submitted_reports.html')
+    conn = psycopg2.connect(database="rapid_db", user="postgres",
+                            password=psql_password, host="localhost")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM incidents ORDER BY date DESC;")
+    incidents = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return render_template('submitted_reports.html', incidents=incidents)
 
 
 @app.route('/demographics')
