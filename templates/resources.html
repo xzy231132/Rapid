@@ -30,6 +30,12 @@
           Address:
           <input type="text" name="address" required />
         </label>
+        <!-- from a purely design standpoint i think users should see incidents listed as a table and then click a button to submit
+        a resource request based off that event, which would then autopopulate... but for the sake of the presentation this is fine -->
+        <label>
+          Incident ID:
+          <input type="text" name="IncidentID" required />
+        </label>
         <label>
           Type of Occurrence:
           <select name="type" required>
@@ -120,6 +126,5 @@
       row.remove();
     }
   </script>
-  <script src="app.js"></script>
 </body>
 </html> 
