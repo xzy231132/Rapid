@@ -17,13 +17,33 @@ password=psql_password, host="localhost", port="5432")  # Replace psql_password 
 
 cur = conn.cursor()
 
-# create incidents table if it doesn't exist
-# this is storing all incident report data submitted by users
-cur.execute(
-    '''CREATE TABLE IF NOT EXISTS incidents( \
-        county VARCHAR(30), address VARCHAR(120),\
-        occurrence VARCHAR(10), description TEXT);'''
-)
+cur.execute("""
+    CREATE TABLE IF NOT EXISTS incidents (
+        incident_id SERIAL PRIMARY KEY,
+        userid INT NOT NULL REFERENCES users(userid),
+        county VARCHAR(30) NOT NULL,
+        address VARCHAR(120) NOT NULL,
+        occurrence VARCHAR(10) NOT NULL,
+        description TEXT NOT NULL,
+        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(20) DEFAULT 'Under Review'
+    );
+""")
+# ensure userid column exists in incidents
+cur.execute("""
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'incidents'
+              AND column_name = 'userid'
+        ) THEN
+            ALTER TABLE incidents ADD COLUMN userid INT REFERENCES users(userid);
+        END IF;
+    END
+    $$;
+""")
 
 # add date column if it doesn't already exist in incidents
 cur.execute("""
@@ -57,13 +77,15 @@ cur.execute("""
 
 # create users table if it doesnt already exist
 # for storing account credentials and role info
-cur.execute(
-    '''CREATE TABLE IF NOT EXISTS users(
-        username VARCHAR(50) PRIMARY KEY,
-        email VARCHAR(100),
-        password VARCHAR(300),
-        role VARCHAR(20) DEFAULT 'user');'''
-)
+cur.execute("""
+CREATE TABLE IF NOT EXISTS users(
+    userid SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(300) NOT NULL,
+    role VARCHAR(20) DEFAULT 'user'
+);
+""")
 
 conn.commit()
 cur.close()
@@ -90,21 +112,23 @@ def inject_user():
 def dashboard():
     if session.get('role') == 'admin':
         return redirect(url_for('all_submitted_reports'))
+    
+    userid = session.get('user_id')
+
     if request.method == 'POST':
         county = request.form.get('county')
         address = request.form['address']
         occurrence = request.form['occurrence']
         description = request.form['description']
+        
 
         conn = psycopg2.connect(database="rapid_db", user="postgres",
                                 password=psql_password, host="localhost")
         cur = conn.cursor()
-
-        cur.execute(
-    '''INSERT INTO incidents (county, address, occurrence, description)
-       VALUES (%s, %s, %s, %s);''',
-    (county, address, occurrence, description)
-    )   
+        cur.execute('''
+            INSERT INTO incidents (userid, county, address, occurrence, description)
+            VALUES (%s, %s, %s, %s, %s);
+        ''', (userid, county, address, occurrence, description))  
 
         conn.commit()
         cur.close()
@@ -113,7 +137,7 @@ def dashboard():
     conn = psycopg2.connect(database="rapid_db", user="postgres",
                             password=psql_password, host="localhost")
     cur = conn.cursor()
-    cur.execute("SELECT * FROM incidents ORDER BY date DESC;")
+    cur.execute("SELECT * FROM incidents WHERE userid = %s ORDER BY date DESC;", (userid,))
     incidents = cur.fetchall()
     cur.close()
     conn.close()
@@ -156,10 +180,11 @@ def submit_resources():
 
 @app.route('/submitted_reports')
 def submitted_reports():
+    user_id = session.get('user_id')
     conn = psycopg2.connect(database="rapid_db", user="postgres",
                             password=psql_password, host="localhost")
     cur = conn.cursor()
-    cur.execute("SELECT * FROM incidents ORDER BY date DESC;")
+    cur.execute("SELECT * FROM incidents WHERE userid = %s ORDER BY date DESC;", (user_id,))
     incidents = cur.fetchall()
     cur.close()
     conn.close()
@@ -245,20 +270,22 @@ def index():
         conn = psycopg2.connect(database="rapid_db", user="postgres",
             password=psql_password, host="localhost", port="5432")
         cur = conn.cursor()
-        cur.execute("SELECT password, role FROM users WHERE username = %s", (username,))
+        cur.execute("SELECT userid, password, role FROM users WHERE username = %s", (username,))
         result = cur.fetchone()
         print("Fetched from DB:", result)#debug
         print("Password entered:", password)#debug
         if result: #debug
             print("Hash from DB:", result[0])
-            print("Check passed:", check_password_hash(result[0], password))
+            print("Check passed:", check_password_hash(result[1], password))
         cur.close()
         conn.close()
 
-        if result and check_password_hash(result[0], password):
+        if result and check_password_hash(result[1], password):
+            session['user_id'] = result[0]
+            session['role'] = result[2]
             session['username'] = username
-            session['role'] = result[1]
-            if result[1] == 'admin':
+
+            if result[2] == 'admin':  # result[2] is the role
                 return redirect(url_for('all_submitted_reports'))
             return redirect(url_for('dashboard'))
         else:
