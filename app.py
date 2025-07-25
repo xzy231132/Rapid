@@ -152,6 +152,68 @@ def resources():
 
 @app.route('/submit_resources', methods=['POST'])
 def submit_resources():
+    # get the amount of each resource to insert in the db later and to do math
+    county = request.form.get('county')
+    # address is currently useless, should discuss whether we want this added to the db or just removed from here
+    address = request.form.get('address')
+    incident_id = request.form.get('IncidentID')
+    sandbags = request.form.get('sandbags') or '0'
+    helicopters = request.form.get('helicopters') or '0'
+    gasoline = request.form.get('gasoline') or '0'
+    diesel = request.form.get('diesel') or '0'
+    medical_responders = request.form.get('medical_responders') or '0'
+    police_responders = request.form.get('police_responders') or '0'
+    fire_responders = request.form.get('fire_responders') or '0'
+    # store the chunks of comments as a list of strings + store resource_comments as a dictionary for easier management and lookup of strings later
+    # all of the chunks will be appended to list_of_comments and then that will be checked and submitted to the db
+    comments_chunks = []
+    list_of_comments = []
+    resource_comments = {
+        'sandbags': request.form.get('sandbags_comment', '').strip(),
+        'helicopters': request.form.get('helicopters_comment', '').strip(),
+        'gasoline': request.form.get('gasoline_comment', '').strip(),
+        'diesel': request.form.get('diesel_comment', '').strip(),
+        'medical responders': request.form.get('medical_responders_comment', '').strip(),
+        'police responders': request.form.get('police_responders_comment', '').strip(),
+        'fire responders': request.form.get('fire_responders_comment', '').strip()
+    }
+    for resource, comment in resource_comments.items():
+        if comment:
+            list_of_comments.append(f"{resource}: {comment}")
+    # will format comments as
+    # COMMENTS:
+    # sandbags: (comment); helicopters: (comment); etc. if they exist
+    if list_of_comments:
+        comments_line = "COMMENTS: " + "; ".join(list_of_comments)
+        comments_chunks.append(comments_line)
+    custom_resource_names = request.form.getlist('resource_name[]')
+    custom_resource_number = request.form.getlist('resource_quantity[]')
+    custom_resource_specs = request.form.getlist('resource_specs[]')
+    custom_resources = []
+    for i in range(len(custom_resource_names)):
+        # THIS DOES NOT FUNCTION AS INTENDED!
+        # TODO: implement a better method that can deal with misaligned input numbers
+        # if custom resource[0] has no specs but custom resource[1] does, custom resource[0]
+        # will be assigned custom resource[1]'s specs
+        name = custom_resource_names[i].strip() if i < len(custom_resource_names) else ''
+        if name:
+            quantity = custom_resource_number[i].strip() if i < len(custom_resource_number) else '0'
+            specs = custom_resource_specs[i].strip() if i < len(custom_resource_specs) else ''
+            # must be kept as a '0', flask sends info as strings, not ints
+            if quantity != '0':
+                custom_resource_line = f"{name}: {quantity}"
+            else:
+                custom_resource_line = f"{name}: Not specified"
+            if specs:
+                custom_resource_line += f" (specs: {specs})"
+            custom_resources.append(custom_resource_line)
+    if custom_resources:
+        if comments_chunks:
+            comments_chunks.append("")
+        custom_resource_line = "CUSTOM RESOURCES: " + "; ".join(custom_resources)
+        comments_chunks.append(custom_resource_line)
+    comments_string = "\n".join(comments_chunks) if comments_chunks else ""
+    # below is the old logic for the submission form, the only difference is that they now get inserted into the table
     flat_cost = 0
     man_hour_cost = 0
     gas_price, diesel_price = get_gas_prices()
@@ -161,22 +223,38 @@ def submit_resources():
         'gasoline': gas_price,
         'diesel': diesel_price,
     }
-    for item, price in prices.items():
-        quantity = request.form.get(item)
-        if quantity and quantity.isdigit():
-            flat_cost += int(quantity) * price
+    flat_cost += sandbags * prices['sandbags']
+    flat_cost += helicopters * prices['helicopters']
+    flat_cost += gasoline * prices['gasoline']
+    flat_cost += diesel * prices['diesel']
     responders = {
         'medical_responders': 50,
         'police_responders': 45,
         'fire_responders': 55
     }
-    for role, hourly_rate in responders.items():
-        num = request.form.get(role)
-        if num and num.isdigit():
-            man_hour_cost += int(num) * hourly_rate
+    man_hour_cost += medical_responders * responders['medical_responders']
+    man_hour_cost += police_responders * responders['police_responders']
+    man_hour_cost += fire_responders * responders['fire_responders']
+    estimated_cost = flat_cost + man_hour_cost * 20
+    conn = psycopg2.connect(database="rapid_db", user="postgres",
+                            password=psql_password, host="localhost", port="5432")
+    cur = conn.cursor()
+    cur.execute('''
+        INSERT INTO resource_req (
+            IncidentID, County, Helicopter, Gasoline, Diesel, Sandbags,
+            Medical_Responders, Police_Responders, Fire_Responders, 
+            Funds_Approved, Comments, Estimated_Cost
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ''', (
+        incident_id, county, helicopters, gasoline, diesel, sandbags,
+        medical_responders, police_responders, fire_responders, 
+        0, comments_string, estimated_cost
+    ))
+    conn.commit()
+    cur.close()
+    conn.close()
     message = f"Your estimated request costs ${flat_cost:.2f} flat, ${man_hour_cost:.2f} per first responder man-hour. Additionally, helicopters cost $600 per hour of flight. Custom resources are not included in this estimate."
     return render_template('summary.html', message=message)
-
 
 @app.route('/submitted_reports')
 def submitted_reports():
