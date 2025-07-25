@@ -21,7 +21,7 @@ def create_tables(connection):
         CREATE TABLE IF NOT EXISTS county (
             CountyID INTEGER PRIMARY KEY,
             Population INTEGER,
-            Name VARCHAR(15),
+            Name VARCHAR(15) UNIQUE,
             Number_Sheltered INTEGER,
             Budget INTEGER
         );
