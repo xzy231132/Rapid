@@ -1,67 +1,46 @@
-// dbml file that covers our db schema
-// syntax reference here:
-// https://dbml.dbdiagram.io/docs/
-
-// added an email column here, compaitble with my acc
-// creation form. also put unique contraints!
-// when an account is created, it will default to users
-// users are promoted to admin manually
 Table users {
   userid serial [primary key]
-  name varchar(30)
-  role varchar(15) [default: 'user']
+  username VARCHAR(50) [primary key]
+  name varchar(50)
+  role varchar(20) [default: 'user']
   username varchar(15) [unique, not null]
-  email varchar(255) [unique, not null] 
-  password varchar(512) [not null] // using 512 because Werkzeug's generate_password_hash can exceed 128
+  email varchar(100) [unique, not null] 
+  password varchar(300) [not null]
 }
 
-// Keep this schema and manually put in each of the county's information just in case the API does not work
 Table county {
-  CountyID int [primary key] // This will be based on the file, florida.txt
-  Population integer // Keep this good!
-  Name varchar(15) // Good, Keep!
-  Number_Sheltered integer // We could get a sample number or use actually numbers
+  CountyID int [primary key]
+  Population integer
+  Name varchar(15)
+  Number_Sheltered integer
+  Budget integer
 }
 
-// This will be for the rescource requests, so specifically whenever city managers give an estimated
-// cost to the state officials 
+Table incidents {
+  EventID serial [primary key]
+  county varchar(15)
+  address VARCHAR(120)
+  occurrence VARCHAR(10)
+  Status varchar(20) [default: 'Under Review']
+  Submitted_At timestamp [default: 'CURRENT_TIMESTAMP']
+  Description text
+}
+
 Table resource_req {
   ReportID serial [primary key]
-  IncidentID [foreign key]
-  County varchar(15) [foreign key??]
-  AmountOfDamage float // Number of mileage that the propertie has damaged
-  TypeOfDamage text // Whether it was water, fire, etc.
-  PropertyType text // This is the type of property that was impacted, residential, business, etc.
-  EstimatedCost int // Estimated dollars amount of damage
-  VolunteersNeeded bool // If you need additional volunteers
-  DonationsNeeded bool // If donations are needed
-  // Here all of the specific items needed, be as creative as you like
+  IncidentID int
+  County varchar(15)
   Helicopter int
-  ShelterRoom int
-  Insulin int
-  Gas int
-  Food int
-  Water int
+  Gasoline int
+  Diesel int
   Sandbags int
-  // If the funds are approved
-  FundsApproved text // Yes, No or Here's the offer we can give
-  NewFunds int // If funds have to be revised
+  Medical_Responders int
+  Police_Responders int
+  Fire_Responders int
+  FundsApproved int
+  Is_Rejected BOOL
 }
 
-
-// Just a bit of tweaks, turn this into incident reports
-// Who can see this: community member can see the EventID, County, Address, Status, Submitted_At, and Description
-// Same with city managers and state officials, except they both can change the status
-// Maybe need more data types
-Table incident_rep {
-  EventID serial [primary key] // Will be generated after submission
-  County varchar(15) [foreign key]?? // Will be from user input, maybe user tolower or something to keep it consistent
-  Address TEXT(100) // Will be from user input
-  Status varchar(15) // Generated after submission
-  Submitted_At timestamp // Generated after submission
-  Description TEXT(1000) // Will be from user input
-}
-
-Ref:  resources.County > county.Name
 Ref: incident_rep.County > county.Name
-Ref: resource_req.ReportID > incident_rep.EventID
+Ref: resource_req.IncidentID > incident_rep.EventID
+Ref: resource_req.County > county.Name
