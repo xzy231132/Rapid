@@ -1,3 +1,5 @@
+// this is the deprecated/commented out code for discussion, cleaned up version will go directly to main, DO NOT PUSH THIS INTO MAIN
+
 // dbml file that covers our db schema
 // syntax reference here:
 // https://dbml.dbdiagram.io/docs/
@@ -21,6 +23,7 @@ Table county {
   Population integer // Keep this good!
   Name varchar(15) // Good, Keep!
   Number_Sheltered integer // We could get a sample number or use actually numbers
+  Budget integer // using this for approval of funds; in real software there would probably be an overall budget but this prototype is more functional with individual county budgets
 }
 
 // This will be for the rescource requests, so specifically whenever city managers give an estimated
@@ -29,23 +32,23 @@ Table resource_req {
   ReportID serial [primary key]
   IncidentID [foreign key]
   County varchar(15) [foreign key??]
-  AmountOfDamage float // Number of mileage that the propertie has damaged
-  TypeOfDamage text // Whether it was water, fire, etc.
-  PropertyType text // This is the type of property that was impacted, residential, business, etc.
-  EstimatedCost int // Estimated dollars amount of damage
-  VolunteersNeeded bool // If you need additional volunteers
-  DonationsNeeded bool // If donations are needed
-  // Here all of the specific items needed, be as creative as you like
+  // i'm commenting these lines out because i think these would be better in the incident table/they violate NF
+    // AmountOfDamage float // Number of mileage that the propertie has damaged
+    // TypeOfDamage text // Whether it was water, fire, etc.
+    // PropertyType text // This is the type of property that was impacted, residential, business, etc.
+  // these are commented out because they seem mostly superfluous in light of the resources you're allowed to request
+    // EstimatedCost int // Estimated dollars amount of damage
+    // VolunteersNeeded bool // If you need additional volunteers
+    // DonationsNeeded bool // If donations are needed
   Helicopter int
-  ShelterRoom int
-  Insulin int
-  Gas int
-  Food int
-  Water int
+  Gasoline int
+  Diesel int
   Sandbags int
-  // If the funds are approved
-  FundsApproved text // Yes, No or Here's the offer we can give
-  NewFunds int // If funds have to be revised
+  Medical_Responders int
+  Police_Responders int
+  Fire_Responders int
+  FundsApproved int // this should just be an int, if it's yes then it's fully approved, if it's no then it's 0, if it's not the full amount it's just the amount approved
+  // commenting this out for reasons listed above NewFunds int // If funds have to be revised
 }
 
 
