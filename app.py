@@ -40,6 +40,21 @@ cur.execute("""
     $$;
 """)
 
+# status column for incidents table
+cur.execute("""
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name='incidents' AND column_name='status'
+        ) THEN
+            ALTER TABLE incidents ADD COLUMN status VARCHAR(20) DEFAULT 'Under Review';
+        END IF;
+    END
+    $$;
+""")
+
 # create users table if it doesnt already exist
 # for storing account credentials and role info
 cur.execute(
