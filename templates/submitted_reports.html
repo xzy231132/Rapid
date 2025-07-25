@@ -9,8 +9,14 @@
 <body>
   <header>
     <h1>RAPID</h1>
-    <p>Submitted Reports</p>
+    <p>Welcome, {{ username.capitalize() }}</p> 
+    <p>Resource Allocation and Public Incident Dashboard</p>
+    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
   </header>
+  <nav>
+    <a href="{{ url_for('resources') }}">Request Resources</a>
+    <a href="{{ url_for('submitted_reports') }}">My Submitted Reports</a>
+  </nav>
   <main>
     <a href="{{ url_for('dashboard') }}" class="back-btn">&larr; Back to Dashboard</a>
     <section>

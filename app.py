@@ -80,8 +80,16 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# added decorator for updating header routes w/ admin access
+@app.context_processor
+def inject_user():
+    return dict(username=session.get('username'))
+
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
+    if session.get('role') == 'admin':
+        return redirect(url_for('all_submitted_reports'))
     if request.method == 'POST':
         county = request.form.get('county')
         address = request.form['address']
@@ -114,6 +122,8 @@ def dashboard():
 
 @app.route('/resources')
 def resources():
+    if session.get('role') == 'admin':
+        return redirect(url_for('all_submitted_reports'))
     return render_template('resources.html')
 
 @app.route('/submit_resources', methods=['POST'])
@@ -157,9 +167,9 @@ def submitted_reports():
     return render_template('submitted_reports.html', incidents=incidents)
 
 
-@app.route('/demographics')
+@app.route('/admin/demographics')
 def demographics():
-    return render_template('demographics.html')
+    return render_template('admin/demographics.html')
 
 
 @app.route('/admin/city_reports')
@@ -248,6 +258,8 @@ def index():
         if result and check_password_hash(result[0], password):
             session['username'] = username
             session['role'] = result[1]
+            if result[1] == 'admin':
+                return redirect(url_for('all_submitted_reports'))
             return redirect(url_for('dashboard'))
         else:
             error = "Invalid username or password"
@@ -258,6 +270,23 @@ def index():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+@app.route('/admin/all_submitted_reports')
+@admin_required
+def all_submitted_reports():
+    conn = psycopg2.connect(database="rapid_db", user="postgres",
+                            password=psql_password, host="localhost")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM incidents ORDER BY date DESC;")
+    incidents = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template(
+    'admin/all_submitted_reports.html',
+    incidents=incidents,
+    username=session.get('username')
+)
+
 
 if __name__ == '__main__':
    app.run(debug = True)

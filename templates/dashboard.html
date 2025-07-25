@@ -11,25 +11,11 @@
     <h1>RAPID</h1>
     <p>Welcome, {{ username.capitalize() }}</p> 
     <p>Resource Allocation and Public Incident Dashboard</p>
-    <a href="{{ url_for('logout') }}">Logout</a>
+    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
   </header>
   <nav>
     <a href="{{ url_for('resources') }}">Request Resources</a>
     <a href="{{ url_for('submitted_reports') }}">Submitted Reports</a>
-    <a href="{{ url_for('demographics') }}">Demographics</a>
-    <ul class="navbar" style="display:inline-block; vertical-align:middle; margin:0; padding:0;">
-      {% if session.get('role') == 'admin' %}
-      <li class="dropdown">
-        <span class="dropbtn">Admin Dashboard</span>
-        <div class="dropdown-content">
-          <a href="{{ url_for('city_reports') }}">City Reports</a>
-          <a href="{{ url_for('county_reports') }}">County Reports</a>
-          <a href="{{ url_for('anticipated_costs') }}">Anicipated Costs</a>
-          <a href="{{ url_for('mock_approval') }}">Mock Approval</a>
-        </div>
-      </li>
-      {% endif %}
-    </ul>
   </nav>
   <main>
     <section class="report-section">
@@ -82,29 +68,5 @@
   <footer>
     <p>RAPID </p>
   </footer>
-  <script>
-    // FRONT END FORM SUBMISSION DASHBOARD
-    // Deleted previous JS code in here bc I'm using Flask
-      const incident = {
-        county: form.county.value,
-        address: form.address.value,
-        type: form.type.value,
-        description: form.description.value,
-        status: 'Ongoing'
-      };
-      const list = document.getElementById('incidents-list');
-      const div = document.createElement('div');
-      div.className = 'incident-card';
-      div.innerHTML = `
-        <h3>${incident.type} in ${incident.county}</h3>
-        <p><strong>Address:</strong> ${incident.address}</p>
-        <p><strong>Description:</strong> ${incident.description}</p>
-        <p><strong>Status:</strong> ${incident.status}</p>
-      `;
-      if (list.querySelector('p')) list.innerHTML = '';
-      list.appendChild(div);
-      form.reset();
-    };
-  </script>
 </body>
 </html> 
