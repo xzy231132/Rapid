@@ -15,8 +15,64 @@ psql_password = os.getenv("PSQL_PASSWORD") # Remove this line if need
 conn = psycopg2.connect(database="rapid_db", user="postgres",
 password=psql_password, host="localhost", port="5432")  # Replace psql_password with the password for your psql user
 
+# Just create a function that would connect to the postgres application
+
 cur = conn.cursor()
 
+# Create a function that gets the user's specified role in postgres, so get the role that is not the username
+def get_user_role(username, conn):
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            '''
+            SELECT rolname FROM pg_roles
+            WHERE oid IN (
+                SELECT roleid
+                FROM pg_auth_members
+                WHERE member = (
+                    SELECT oid FROM pg_roles WHERE rolname = %s
+                )
+            )
+            AND rolname IN ('community_member', 'city_manager', 'state_official', 'admin')
+            ''', (username, )
+        )
+
+        roles = cur.fetchall()
+
+        # Debugging
+        print(f"Roles for user {username}: {roles}")
+        
+        # Turn the roles into a list
+        role_names = [role[0] for role in roles]
+        
+        # Order everything by roles
+        if 'admin' in role_names:
+            return 'admin'
+        elif 'state_official' in role_names:
+            return 'state_official'
+        elif 'city_manager' in role_names:
+            return 'city_manager'
+        elif 'community_member' in role_names:
+            return 'community_member'
+        else:
+            return 'user'
+    finally:
+        cur.close()
+
+
+# create users table if it doesnt already exist
+# for storing account credentials and role info
+# For the users, the password will be handled by postgres no need to manually encrypt, password
+# Additional information about the user will be stored in the table
+cur.execute("""
+CREATE TABLE IF NOT EXISTS users(
+    userid SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+""")
+
+# Create the incidents tables, so it references things that are there
 cur.execute("""
     CREATE TABLE IF NOT EXISTS incidents (
         incident_id SERIAL PRIMARY KEY,
@@ -44,6 +100,31 @@ cur.execute("""
     END
     $$;
 """)
+
+# We need to create the roles for the users in the database, community members, city managers, and state/federal officials
+cur.execute(
+    '''
+    DO
+    $do$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'community_member') THEN
+            CREATE ROLE community_member;
+        END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'city_manager') THEN
+            CREATE ROLE city_manager;
+        END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'state_official') THEN
+            CREATE ROLE state_official;
+        END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'admin') THEN
+            CREATE ROLE admin;
+        END IF;
+    END
+    $do$;
+    '''
+)
+
+
 
 # add date column if it doesn't already exist in incidents
 cur.execute("""
@@ -75,17 +156,17 @@ cur.execute("""
     $$;
 """)
 
-# create users table if it doesnt already exist
-# for storing account credentials and role info
-cur.execute("""
-CREATE TABLE IF NOT EXISTS users(
-    userid SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(300) NOT NULL,
-    role VARCHAR(20) DEFAULT 'user'
-);
-""")
+# Now we can grant the permissions to the roles
+cur.execute(
+    '''
+    GRANT SELECT, INSERT ON TABLE incidents TO community_member;
+    GRANT SELECT, UPDATE, DELETE ON TABLE incidents TO city_manager;
+    GRANT SELECT, INSERT ON TABLE resource_req TO city_manager;
+    GRANT SELECT, UPDATE ON TABLE incidents TO state_official;
+    GRANT SELECT, UPDATE, DELETE ON TABLE resource_req TO state_official;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin;
+    '''
+)
 
 conn.commit()
 cur.close()
@@ -298,35 +379,44 @@ def anticipated_costs():
 def mock_approval():
     return render_template("admin/mock_approval.html")
 
-from werkzeug.security import generate_password_hash
-
 @app.route('/create_account', methods=['GET', 'POST'])
 def create_account():
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'] # Lets have a psql role and a flask role, so flask is the app based logic
         email = request.form['email']
         password = request.form['password']
-
-        hashed_password = generate_password_hash(password)
 
         conn = psycopg2.connect(database="rapid_db", user="postgres",
             password=psql_password, host="localhost", port="5432")
         cur = conn.cursor()
 
-        cur.execute("SELECT username FROM users WHERE username = %s", (username,))
-        existing_user = cur.fetchone()
+        # Check if the username already exists in the database
+        try:
+            cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (username,))
+            existing_role = cur.fetchone()
 
-        if existing_user:
-            cur.close()
-            conn.close()
-            error = "Username already exists. Please choose another one."
-            return render_template('create_account.html', error=error)
+            # LOOK AT THIS, THE USERNAME HAS TO BE SAFE FOR THE USER TO BE CREATED
+            if not existing_role: # If the user does not exist, create user for the database
+                if not username.isalnum(): # This meant to be safe for SQL to inject the username into SQL
+                    error = "Username must contain only alphanumeric characters"
+
+                # Use string formatting for creating user and granting roles to the specific user
+                cur.execute(f"CREATE USER \"{username}\" WITH PASSWORD %s;", (password,))
+
+                # Automatically grants community member role to whoever signs up
+                cur.execute(f"GRANT community_member TO \"{username}\";")
+        except Exception as e:
+            error = f"User creation failed: {e}"
+
         
-        # insert new user here if username is unique
+        # insert new user here if username if everything is good on the postgres side
+        # We really only need the username and emails here, the password is stored safely in postgres
+        # We do not need the email
         cur.execute(
-            '''INSERT INTO users (username, email, password)
-            VALUES (%s, %s, %s);''',
-            (username, email, hashed_password)
+            '''INSERT INTO users (username, email)
+            VALUES (%s, %s)
+            ON CONFLICT (username) DO NOTHING;''',
+            (username, email)
         )
 
         conn.commit()
@@ -336,38 +426,60 @@ def create_account():
         return redirect(url_for('index')) 
     return render_template('create_account.html')
 
-from werkzeug.security import check_password_hash
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     error = None
+    # This is where the userid for the session will be stored, this is where it will be remembered
+    user_id_test = 0
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        conn = psycopg2.connect(database="rapid_db", user="postgres",
+        # If the user exists within the postgres authentication
+        conn = psycopg2.connect(database="rapid_db", user="postgres", # Change this to the specific user logging in the database
             password=psql_password, host="localhost", port="5432")
+
         cur = conn.cursor()
-        cur.execute("SELECT userid, password, role FROM users WHERE username = %s", (username,))
-        result = cur.fetchone()
-        print("Fetched from DB:", result)#debug
-        print("Password entered:", password)#debug
-        if result: #debug
-            print("Hash from DB:", result[0])
-            print("Check passed:", check_password_hash(result[1], password))
-        cur.close()
-        conn.close()
 
-        if result and check_password_hash(result[1], password):
-            session['user_id'] = result[0]
-            session['role'] = result[2]
-            session['username'] = username
+        # Validate if the user exists from the table so I can get the userid
+        cur.execute("SELECT username FROM users WHERE username = %s", (username,))
+        existing_user = cur.fetchone()
 
-            if result[2] == 'admin':  # result[2] is the role
-                return redirect(url_for('all_submitted_reports'))
-            return redirect(url_for('dashboard'))
+        if existing_user:
+            # This is to get the user_id so it can be used throughout the session so yeah, get that in your head gang
+            cur.execute("SELECT userid FROM users WHERE username=%s", (username,))
+            user_id_cookin = cur.fetchone()
+
+            # Debugging
+            print(user_id_cookin[0])
+            user_id_test = user_id_cookin[0]
+
         else:
-            error = "Invalid username or password"
+            error="Cannot get user id of a user that does not exist"
+
+        # This checks from the database selection if the user already exists for the database
+        cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (username,)) # Checks the users that are in the roles list in psql
+        existing_user = cur.fetchone()
+
+        if existing_user:
+            # If the user is able to login into the database, the database will have specific permissions
+            # By the user
+            try:
+                conn =  psycopg2.connect(database="rapid_db", user=username, # Now the specific user is logging into the database, no need to manually hash password
+                password=password, host="localhost", port="5432")
+                session['username'] = username
+                session['role'] = get_user_role(username, conn) # Get the role of the user from the database, maybe this could work?
+                session['user_id'] = user_id_test
+
+                if get_user_role(username, conn) == 'admin':
+                    return redirect(url_for('all_submitted_reports'))
+                return redirect(url_for('dashboard'))
+            except OperationalError as e:
+                error = "Invalid username or password"
+        else:
+            error = "User does not exist"
 
     return render_template('index.html', error=error)
 
