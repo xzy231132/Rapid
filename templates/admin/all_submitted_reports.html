@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Anticipated Costs - RAPID Admin</title>
+  <title>RAPID - Admin Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"/>
 </head>
 <body>
@@ -19,13 +19,28 @@
     <a href="{{ url_for('anticipated_costs') }}">Anticipated Costs</a>
     <a href="{{ url_for('mock_approval') }}">Mock Approval</a>
   </nav>
-  <main style="display: flex; justify-content: center; align-items: center; height: 60vh; flex-direction: column;">
-    <a href="{{ url_for('all_submitted_reports') }}" class="back-btn">&larr; Back to Dashboard</a>
-    <section style="text-align: center;">
-      <h2>Anticipated Costs</h2>
-      <p>Page will display anticipated costs related to incidents and resource allocation.</p>
+
+  <main>
+    <section class="dashboard-section">
+      <h2>All Submitted Reports</h2>
+      {% if incidents %}
+      <div id="incidents-list">
+        {% for inc in incidents %}
+        <div class="incident-card">
+          <h3>{{ inc[2] | capitalize }} in {{ inc[0] }}</h3>
+          <p><strong>Address:</strong> {{ inc[1] }}</p>
+          <p><strong>Description:</strong> {{ inc[3] }}</p>
+          <p><strong>Date:</strong> {{ inc[4] }}</p>
+          <p><strong>Status:</strong> {{ inc[5] }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+        <p>No incident reports found.</p>
+      {% endif %}
     </section>
   </main>
+
   <footer>
     <p>RAPID</p>
   </footer>
