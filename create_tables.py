@@ -14,7 +14,7 @@ def create_tables(connection):
             role VARCHAR(15) DEFAULT 'user',
             username VARCHAR(15) UNIQUE NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
-            password VARCHAR(512) NOT NULL
+            -- password VARCHAR(512) NOT NULL --
         );
         """,
         """

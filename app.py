@@ -4,6 +4,7 @@ from dotenv import load_dotenv # Remove this line if needed, this is for practic
 import os # Remove this line if needed as well, this is just for the passwords
 from scrapers import get_gas_prices
 from functools import wraps
+from create_tables import create_tables
 
 app = Flask(__name__)
 
@@ -16,7 +17,7 @@ conn = psycopg2.connect(database="rapid_db", user="postgres",
 password=psql_password, host="localhost", port="5432")  # Replace psql_password with the password for your psql user
 
 # Just create a function that would connect to the postgres application
-
+create_tables(conn)
 cur = conn.cursor()
 
 # Create a function that gets the user's specified role in postgres, so get the role that is not the username
