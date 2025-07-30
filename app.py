@@ -1,20 +1,22 @@
 from flask import Flask, render_template, request, url_for, session, redirect, flash
 import psycopg2
-from dotenv import load_dotenv # Remove this line if needed, this is for practice hide database passwords
+from psycopg2 import OperationalError # idk what's wrong w/ this but pycharm kept throwing an error unless i manually included it lol
 import os # Remove this line if needed as well, this is just for the passwords
 from scrapers import get_gas_prices
 from functools import wraps
 from create_tables import create_tables
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-
-load_dotenv() # Remove this line if needed
-
+def db_connect():
+    return psycopg2.connect(
+        "postgresql://neondb_owner:npg_l6GvQO3zVwfC@ep-summer-truth-aehrsnkz-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    )
+load_dotenv()
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 psql_password = os.getenv("PSQL_PASSWORD") # Remove this line if need
 
-conn = psycopg2.connect(database="rapid_db", user="postgres",
-password=psql_password, host="localhost", port="5432")  # Replace psql_password with the password for your psql user
+conn = db_connect()
 
 # Just create a function that would connect to the postgres application
 create_tables(conn)
@@ -204,8 +206,7 @@ def dashboard():
         description = request.form['description']
         
 
-        conn = psycopg2.connect(database="rapid_db", user="postgres",
-                                password=psql_password, host="localhost")
+        conn = db_connect()
         cur = conn.cursor()
         cur.execute('''
             INSERT INTO incidents (userid, county, address, occurrence, description)
@@ -216,8 +217,7 @@ def dashboard():
         cur.close()
         conn.close()
 
-    conn = psycopg2.connect(database="rapid_db", user="postgres",
-                            password=psql_password, host="localhost")
+    conn = db_connect()
     cur = conn.cursor()
     cur.execute("SELECT * FROM incidents WHERE userid = %s ORDER BY date DESC;", (userid,))
     incidents = cur.fetchall()
@@ -318,8 +318,7 @@ def submit_resources():
     man_hour_cost += police_responders * responders['police_responders']
     man_hour_cost += fire_responders * responders['fire_responders']
     estimated_cost = flat_cost + man_hour_cost * 20
-    conn = psycopg2.connect(database="rapid_db", user="postgres",
-                            password=psql_password, host="localhost", port="5432")
+    conn = db_connect()
     cur = conn.cursor()
     cur.execute('''
         INSERT INTO resource_req (
@@ -341,8 +340,7 @@ def submit_resources():
 @app.route('/submitted_reports')
 def submitted_reports():
     user_id = session.get('user_id')
-    conn = psycopg2.connect(database="rapid_db", user="postgres",
-                            password=psql_password, host="localhost")
+    conn = db_connect()
     cur = conn.cursor()
     cur.execute("SELECT * FROM incidents WHERE userid = %s ORDER BY date DESC;", (user_id,))
     incidents = cur.fetchall()
@@ -381,7 +379,7 @@ def anticipated_costs():
 # if approved
 # TODO: implement warning system/flash message if request would go negative
 def mock_approval():
-    conn = psycopg2.connect(database="rapid_db", user="postgres", password=psql_password, host="localhost", port="5432")
+    conn = db_connect()
     cur = conn.cursor()
     if request.method == 'POST':
         request_id = request.form.get('request_id')
@@ -424,8 +422,7 @@ def create_account():
         email = request.form['email']
         password = request.form['password']
 
-        conn = psycopg2.connect(database="rapid_db", user="postgres",
-            password=psql_password, host="localhost", port="5432")
+        conn = db_connect()
         cur = conn.cursor()
 
         # Check if the username already exists in the database
@@ -476,8 +473,7 @@ def index():
         password = request.form['password']
 
         # If the user exists within the postgres authentication
-        conn = psycopg2.connect(database="rapid_db", user="postgres", # Change this to the specific user logging in the database
-            password=psql_password, host="localhost", port="5432")
+        conn = db_connect()
 
         cur = conn.cursor()
 
@@ -505,8 +501,7 @@ def index():
             # If the user is able to login into the database, the database will have specific permissions
             # By the user
             try:
-                conn =  psycopg2.connect(database="rapid_db", user=username, # Now the specific user is logging into the database, no need to manually hash password
-                password=password, host="localhost", port="5432")
+                conn =  db_connect()
                 session['username'] = username
                 session['role'] = get_user_role(username, conn) # Get the role of the user from the database, maybe this could work?
                 session['user_id'] = user_id_test
@@ -529,8 +524,7 @@ def logout():
 @app.route('/admin/all_submitted_reports')
 @admin_required
 def all_submitted_reports():
-    conn = psycopg2.connect(database="rapid_db", user="postgres",
-                            password=psql_password, host="localhost")
+    conn = db_connect()
     cur = conn.cursor()
     cur.execute("SELECT * FROM incidents ORDER BY date DESC;")
     incidents = cur.fetchall()
